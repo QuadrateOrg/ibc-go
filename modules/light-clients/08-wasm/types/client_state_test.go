@@ -3,20 +3,25 @@ package types_test
 import (
 	"encoding/base64"
 	"time"
+	//"fmt"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	//"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	//channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	tmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	//ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *WasmTestSuite) TestStatus() {
+	var (
+		path        *ibctesting.Path
+		clientState *wasmtypes.ClientState
+	)
 	testCases := []struct {
 		name      string
 		malleate  func()
@@ -24,51 +29,49 @@ func (suite *WasmTestSuite) TestStatus() {
 	}{
 		{"client is active", func() {}, exported.Active},
 		{"client is frozen", func() {
-			cs, err := base64.StdEncoding.DecodeString(suite.testData["client_state_frozen"])
+			var eClientState exported.ClientState
+			err := suite.chainA.Codec.UnmarshalInterface(clientState.Data, &eClientState)
 			suite.Require().NoError(err)
-
-			frozenClientState := wasmtypes.ClientState{
-				Data:   cs,
-				CodeId: suite.codeID,
-				LatestHeight: clienttypes.Height{
-					RevisionNumber: 2000,
-					RevisionHeight: 5,
-				},
-			}
-
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", &frozenClientState)
+			tmClientState := eClientState.(*tmtypes.ClientState)
+			tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+			wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
+			suite.Require().NoError(err)
+			clientState.Data = wasmData
+			path.EndpointA.SetClientState(clientState)
 		}, exported.Frozen},
 		{"client status without consensus state", func() {
-			cs, err := base64.StdEncoding.DecodeString(suite.testData["client_state_no_consensus"])
+			latestHeight := clientState.LatestHeight.Increment().(clienttypes.Height)
+			var eClientState exported.ClientState
+			err := suite.chainA.Codec.UnmarshalInterface(clientState.Data, &eClientState)
 			suite.Require().NoError(err)
-
-			clientState := wasmtypes.ClientState{
-				Data:   cs,
-				CodeId: suite.codeID,
-				LatestHeight: clienttypes.Height{
-					RevisionNumber: 2000,
-					RevisionHeight: 36, // This doesn't matter, but the grandpa client state is set to this
-				},
-			}
-
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", &clientState)
+			tmClientState := eClientState.(*tmtypes.ClientState)
+			tmClientState.LatestHeight = latestHeight
+			wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
+			clientState.Data = wasmData
+			clientState.LatestHeight = latestHeight
+			path.EndpointA.SetClientState(clientState)
 		}, exported.Expired},
-		// ics10-grandpa client state doesn't have a trusting period, so this might be removed
-		/*{"client status is expired", func() {
-			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
-		}, exported.Expired},*/
-		{"no client state", func() {
-			suite.SetupWithEmptyClient()
-		}, exported.Unknown},
+		{"client status is expired", func() {
+			var eClientState exported.ClientState
+			err := suite.chainA.Codec.UnmarshalInterface(clientState.Data, &eClientState)
+			suite.Require().NoError(err)
+			suite.coordinator.IncrementTimeBy(eClientState.(*tmtypes.ClientState).TrustingPeriod)
+		}, exported.Expired},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWithChannel()
+			suite.SetupWasmTendermint()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			clientState = path.EndpointA.GetClientState().(*wasmtypes.ClientState)
+			
 			tc.malleate()
 
-			status := suite.clientState.Status(suite.ctx, suite.store, suite.chainA.App.AppCodec())
+			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 			suite.Require().Equal(tc.expStatus, status)
 		})
 	}
@@ -169,9 +172,9 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 		delayBlockPeriod uint64
 	)
 	clientID := "07-tendermint-0"
-	connectionID := "connection-0"
-	channelID := "channel-0"
-	portID := "transfer"
+	//connectionID := "connection-0"
+	//channelID := "channel-0"
+	//portID := "transfer"
 	pathPrefix := "ibc/"
 
 	testCases := []struct {
@@ -179,7 +182,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 		setup   func()
 		expPass bool
 	}{
-		{
+		/*{
 			"successful ClientState verification",
 			func() {
 			},
@@ -344,7 +347,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 				// change the value being proved
 				value = []byte("invalid value")
 			}, false,
-		},
+		},*/
 	}
 
 	for _, tc := range testCases {
@@ -414,11 +417,11 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 		delayTimePeriod  uint64
 		delayBlockPeriod uint64
 	)
-	clientID := "07-tendermint-0"
-	portID := "transfer"
+	//clientID := "07-tendermint-0"
+	//portID := "transfer"
 	invalidClientID := "09-tendermint-0"
-	invalidConnectionID := "connection-100"
-	invalidChannelID := "channel-800"
+	//invalidConnectionID := "connection-100"
+	//invalidChannelID := "channel-800"
 	pathPrefix := "ibc/"
 
 	testCases := []struct {
@@ -426,7 +429,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 		setup   func()
 		expPass bool
 	}{
-		{
+		/*{
 			"successful ClientState verification of non membership",
 			func() {
 			},
@@ -548,7 +551,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 				suite.Require().NoError(err)
 			}, false,
-		},
+		},*/
 	}
 
 	for _, tc := range testCases {

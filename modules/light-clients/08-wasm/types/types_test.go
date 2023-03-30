@@ -20,15 +20,18 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	tmclient "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/suite"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 )
 
 type WasmTestSuite struct {
 	suite.Suite
 	coordinator    *ibctesting.Coordinator
 	chainA         *ibctesting.TestChain
+	chainB         *ibctesting.TestChain
 	ctx            sdk.Context
 	now            time.Time
 	store          sdk.KVStore
@@ -37,6 +40,41 @@ type WasmTestSuite struct {
 	codeID         []byte
 	testData       map[string]string
 	wasmKeeper     keeper.Keeper
+}
+
+func (suite *WasmTestSuite) SetupWasmTendermint() {
+	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2, true)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+
+	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
+	suite.coordinator.CommitNBlocks(suite.chainA, 2)
+	suite.coordinator.CommitNBlocks(suite.chainB, 2)
+
+	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-0")
+	
+	err := os.MkdirAll("tmp", 0o755)
+	suite.Require().NoError(err)
+	suite.wasmKeeper = suite.chainA.App.GetWasmKeeper()
+	wasmContract, err := os.ReadFile("test_data/ics07_tendermint_cw.wasm")
+	suite.Require().NoError(err)
+
+	msg := wasmtypes.NewMsgPushNewWasmCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
+	response, err := suite.wasmKeeper.PushNewWasmCode(suite.chainA.GetContext(), msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(response.CodeId)
+	suite.codeID = response.CodeId
+
+	response, err = suite.chainB.App.GetWasmKeeper().PushNewWasmCode(suite.chainB.GetContext(), msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(response.CodeId)
+	suite.codeID = response.CodeId
+
+	suite.coordinator.SetCodeID(suite.codeID)
+	suite.coordinator.CommitNBlocks(suite.chainA, 2)
+	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
 
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
@@ -109,7 +147,7 @@ func (suite *WasmTestSuite) SetupWithEmptyClient() {
 }
 
 func (suite *WasmTestSuite) CommonSetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1, false)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
@@ -175,4 +213,26 @@ func (suite *WasmTestSuite) TestQueryAllWasmCode() {
 
 func TestWasmTestSuite(t *testing.T) {
 	suite.Run(t, new(WasmTestSuite))
+}
+
+func NewTendermintClientState(endpoint *ibctesting.Endpoint, height exported.Height) tmclient.ClientState {
+	tmConfig, ok := endpoint.ClientConfig.(*ibctesting.TendermintConfig)
+	if !ok {
+		panic("Panic casting ClientConfig to TendermindConfig")
+	}
+
+	clientHeight := height.(clienttypes.Height)
+
+	clientState := tmclient.NewClientState(
+		endpoint.Counterparty.ClientID,
+		tmConfig.TrustLevel,
+		tmConfig.TrustingPeriod,
+		tmConfig.UnbondingPeriod,
+		tmConfig.MaxClockDrift,
+		clientHeight,
+		commitmenttypes.GetSDKSpecs(),
+		ibctesting.UpgradePath,
+	)
+
+	return *clientState
 }

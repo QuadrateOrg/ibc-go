@@ -25,10 +25,11 @@ type Coordinator struct {
 
 	CurrentTime time.Time
 	Chains      map[string]*TestChain
+	CodeID      []byte
 }
 
 // NewCoordinator initializes Coordinator with N TestChain's
-func NewCoordinator(t *testing.T, n int) *Coordinator {
+func NewCoordinator(t *testing.T, n int, wasm bool) *Coordinator {
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
 		T:           t,
@@ -37,11 +38,15 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 
 	for i := 1; i <= n; i++ {
 		chainID := GetChainID(i)
-		chains[chainID] = NewTestChain(t, coord, chainID)
+		chains[chainID] = NewTestChain(t, coord, chainID, wasm)
 	}
 	coord.Chains = chains
 
 	return coord
+}
+
+func (coord *Coordinator) SetCodeID(codeID []byte) {
+	coord.CodeID = codeID
 }
 
 // IncrementTime iterates through all the TestChain's and increments their current header time

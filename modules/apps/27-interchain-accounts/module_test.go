@@ -29,7 +29,7 @@ func TestICATestSuite(t *testing.T) {
 }
 
 func (suite *InterchainAccountsTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2, false)
 }
 
 func (suite *InterchainAccountsTestSuite) TestInitModule() {

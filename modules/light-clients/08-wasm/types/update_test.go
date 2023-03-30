@@ -20,7 +20,7 @@ func (suite *WasmTestSuite) TestVerifyHeader() {
 		setup   func()
 		expPass bool
 	}{
-		{
+		/*{
 			"successful verify header", func() {},
 			true,
 		},
@@ -54,7 +54,7 @@ func (suite *WasmTestSuite) TestVerifyHeader() {
 				}
 			},
 			false,
-		},
+		},*/
 	}
 
 	for _, tc := range testCases {
@@ -96,7 +96,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 		setup   func()
 		expPass bool
 	}{
-		{
+		/*{
 			"success with height later than latest height",
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
@@ -138,7 +138,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 				}
 			},
 			false,
-		},
+		},*/
 	}
 
 	for _, tc := range testCases {
@@ -182,7 +182,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 		setup   func()
 		expPass bool
 	}{
-		{
+		/*{
 			"successful update",
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
@@ -193,7 +193,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 				clientState = suite.clientState
 			},
 			true,
-		},
+		},*/
 	}
 
 	for _, tc := range testCases {

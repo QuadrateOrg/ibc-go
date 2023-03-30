@@ -15,6 +15,7 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
 // Endpoint is a which represents a channel endpoint and its associated
@@ -52,7 +53,7 @@ func NewEndpoint(
 func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 	return &Endpoint{
 		Chain:            chain,
-		ClientConfig:     NewTendermintConfig(),
+		ClientConfig:     NewTendermintConfig(chain.WasmClient),
 		ConnectionConfig: NewConnectionConfig(),
 		ChannelConfig:    NewChannelConfig(),
 	}
@@ -102,7 +103,33 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		//		solo := NewSolomachine(endpoint.Chain.TB, endpoint.Chain.Codec, clientID, "", 1)
 		//		clientState = solo.ClientState()
 		//		consensusState = solo.ConsensusState()
+	case exported.Wasm:
+		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
+		require.True(endpoint.Chain.TB, ok)
 
+		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
+		tmClientState := ibctm.NewClientState(
+			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
+		tmConsensusState := endpoint.Counterparty.Chain.LastHeader.ConsensusState()
+		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmClientState)
+		if err != nil {
+			return err
+		}
+		clientState = wasmtypes.NewClientState(
+			wasmData,
+			endpoint.Chain.Coordinator.CodeID,
+			height,
+		)
+		
+		wasmConsData, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
+		if err != nil {
+			return err
+		}
+		consensusState = &wasmtypes.ConsensusState{
+			Data: wasmConsData,
+			Timestamp: tmConsensusState.GetTimestamp(),
+		}
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -137,7 +164,8 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
 		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
-
+	case exported.Wasm:
+		header, err = endpoint.Chain.ConstructUpdateWasmClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}

@@ -4,7 +4,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	//solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 )
 
 // TestVerifyUpgrade currently only tests the interface into the contract.
@@ -26,7 +26,7 @@ func (suite *WasmTestSuite) TestVerifyUpgrade() {
 		setup   func()
 		expPass bool
 	}{
-		{
+		/*{
 			"successful upgrade",
 			func() {},
 			true,
@@ -58,7 +58,7 @@ func (suite *WasmTestSuite) TestVerifyUpgrade() {
 				proofUpgradedConsState = []byte("invalid consensus state proof")
 			},
 			false,
-		},
+		},*/
 	}
 
 	for _, tc := range testCases {

@@ -74,6 +74,9 @@ type TestChain struct {
 	SenderAccount authtypes.AccountI
 
 	SenderAccounts []SenderAccount
+
+	// Use wasm client if true
+	WasmClient bool
 }
 
 // NewTestChainWithValSet initializes a new TestChain instance with the given validator set
@@ -156,7 +159,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 
 // NewTestChain initializes a new test chain with a default of 4 validators
 // Use this function if the tests do not need custom control over the validator set
-func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
+func NewTestChain(t *testing.T, coord *Coordinator, chainID string, wasm bool) *TestChain {
 	// generate validators private/public key
 	var (
 		validatorsPerChain = 4
@@ -177,7 +180,12 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// or, if equal, by address lexical order
 	valSet := tmtypes.NewValidatorSet(validators)
 
-	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress)
+	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress).SetWasm(wasm)
+}
+
+func (chain *TestChain) SetWasm(wasm bool) *TestChain {
+	chain.WasmClient = wasm
+	return chain
 }
 
 // GetContext returns the current context for the application.
