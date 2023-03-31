@@ -193,11 +193,18 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
 	}
 
-	clientState := endpoint.Counterparty.GetClientState().(*ibctm.ClientState)
+	clientState := endpoint.Counterparty.GetClientState()
+
+	var wasmClientState *wasmtypes.ClientState
+	if endpoint.ClientConfig.GetClientType() == exported.Wasm {
+		wasmClientState = clientState.(*wasmtypes.ClientState)
+		err := endpoint.Chain.Codec.UnmarshalInterface(wasmClientState.Data, &clientState)
+		require.NoError(endpoint.Chain.TB, err)
+	}
+	tmClientState := clientState.(*ibctm.ClientState)
 
 	// increment revision number in chainID
-
-	oldChainID := clientState.ChainId
+	oldChainID := tmClientState.ChainId
 	if !clienttypes.IsRevisionFormat(oldChainID) {
 		return fmt.Errorf("cannot upgrade chain which is not of revision format: %s", oldChainID)
 	}
@@ -215,14 +222,31 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	endpoint.Chain.NextBlock() // commit changes
 
 	// update counterparty client manually
-	clientState.ChainId = newChainID
-	clientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1)
+	tmClientState.ChainId = newChainID
+	tmClientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, tmClientState.LatestHeight.GetRevisionHeight()+1)
+	
+	if endpoint.ClientConfig.GetClientType() == exported.Wasm {
+		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmClientState)
+		require.NoError(endpoint.Chain.TB, err)
+		wasmClientState.Data = wasmData
+		wasmClientState.LatestHeight = tmClientState.LatestHeight
+	}
 	endpoint.Counterparty.SetClientState(clientState)
 
-	consensusState := &ibctm.ConsensusState{
+	tmConsensusState := &ibctm.ConsensusState{
 		Timestamp:          endpoint.Chain.LastHeader.GetTime(),
 		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LastHeader.Header.GetAppHash()),
 		NextValidatorsHash: endpoint.Chain.LastHeader.Header.NextValidatorsHash,
+	}
+	var consensusState exported.ConsensusState
+	consensusState = tmConsensusState
+	if endpoint.ClientConfig.GetClientType() == exported.Wasm {
+		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
+		require.NoError(endpoint.Chain.TB, err)
+		consensusState = &wasmtypes.ConsensusState{
+			Data: wasmData,
+			Timestamp: tmConsensusState.GetTimestamp(),
+		}
 	}
 	endpoint.Counterparty.SetConsensusState(consensusState, clientState.GetLatestHeight())
 

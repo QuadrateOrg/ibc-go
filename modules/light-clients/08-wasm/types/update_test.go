@@ -3,10 +3,14 @@ package types_test
 import (
 	"encoding/base64"
 
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *WasmTestSuite) TestVerifyHeader() {
@@ -85,6 +89,93 @@ func (suite *WasmTestSuite) TestVerifyHeader() {
 	}
 }
 
+func (suite *WasmTestSuite) TestUpdateState2() {
+	var (
+		path               *ibctesting.Path
+		clientMessage      exported.ClientMessage
+		clientStore        sdk.KVStore
+		consensusHeights   []exported.Height
+		//prevClientState    exported.ClientState
+		//prevConsensusState exported.ConsensusState
+	)
+
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expResult func()
+		expPass   bool
+	}{
+		{
+			"success with height later than latest height", func() {
+				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				suite.Require().True(ok)
+				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(wasmHeader.Height))
+			},
+			func() {
+				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				suite.Require().True(ok)
+
+				clientState := path.EndpointA.GetClientState()
+				suite.Require().True(clientState.GetLatestHeight().EQ(wasmHeader.Height)) // new update, updated client state should have changed
+				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
+			}, true,
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmTendermint() // reset
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			err := path.EndpointA.CreateClient()
+			suite.Require().NoError(err)
+
+			// ensure counterparty state is committed
+			suite.coordinator.CommitBlock(suite.chainB)
+			clientMessage, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			clientState := path.EndpointA.GetClientState()
+			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+			if tc.expPass {
+				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+
+				header := clientMessage.(*wasmtypes.Header)
+				var eHeader exported.ClientMessage
+				err := suite.chainA.Codec.UnmarshalInterface(header.Data, &eHeader)
+				tmHeader := eHeader.(*ibctm.Header)
+				suite.Require().NoError(err)
+				expTmConsensusState := &ibctm.ConsensusState{
+					Timestamp:          tmHeader.GetTime(),
+					Root:               commitmenttypes.NewMerkleRoot(tmHeader.Header.GetAppHash()),
+					NextValidatorsHash: tmHeader.Header.NextValidatorsHash,
+				}
+				wasmData, err := suite.chainA.Codec.MarshalInterface(expTmConsensusState)
+				suite.Require().NoError(err)
+				expWasmConsensusState := &wasmtypes.ConsensusState{
+					Data: wasmData,
+					Timestamp: expTmConsensusState.GetTimestamp(),
+				}
+
+				bz := clientStore.Get(host.ConsensusStateKey(header.Height))
+				updatedConsensusState := clienttypes.MustUnmarshalConsensusState(suite.chainA.App.AppCodec(), bz)
+
+				suite.Require().Equal(expWasmConsensusState, updatedConsensusState)
+
+			} else {
+				suite.Require().Panics(func() {
+					clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+				})
+			}
+
+			// perform custom checks
+			tc.expResult()
+		})
+	}
+}
 func (suite *WasmTestSuite) TestUpdateState() {
 	var (
 		clientMsg   exported.ClientMessage

@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"fmt"
 	"testing"
 
 	//errorsmod "cosmossdk.io/errors"
@@ -37,9 +38,13 @@ func (chain *TestChain) ConstructUpdateWasmClientHeaderWithTrustedHeight(counter
 		return nil, err
 	}
 
+	height, ok := tmHeader.GetHeight().(clienttypes.Height)
+	if !ok {
+		return nil, fmt.Errorf("Error casting exported height to clienttypes height")
+	}
 	wasmHeader := wasmtypes.Header{
 		Data: wasmData,
-		Height: trustedHeight,
+		Height: height,
 	}
 
 	return &wasmHeader, nil
