@@ -13,7 +13,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *WasmTestSuite) TestVerifyHeader() {
+func (suite *WasmTestSuite) TestVerifyHeaderGrandpa() {
 	var (
 		clientMsg   exported.ClientMessage
 		clientState exported.ClientState
@@ -89,7 +89,7 @@ func (suite *WasmTestSuite) TestVerifyHeader() {
 	}
 }
 
-func (suite *WasmTestSuite) TestUpdateState2() {
+func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 	var (
 		path               *ibctesting.Path
 		clientMessage      exported.ClientMessage
@@ -176,7 +176,7 @@ func (suite *WasmTestSuite) TestUpdateState2() {
 		})
 	}
 }
-func (suite *WasmTestSuite) TestUpdateState() {
+func (suite *WasmTestSuite) TestUpdateStateGrandpa() {
 	var (
 		clientMsg   exported.ClientMessage
 		clientState exported.ClientState
@@ -262,7 +262,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 	}
 }
 
-func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
+func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 	var (
 		clientMsg   exported.ClientMessage
 		clientState exported.ClientState

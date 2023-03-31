@@ -10,7 +10,7 @@ import (
 // TestVerifyUpgrade currently only tests the interface into the contract.
 // Test code is used in the grandpa contract.
 // New client state, consensus state, and client metadata is expected to be set in the contract on success
-func (suite *WasmTestSuite) TestVerifyUpgrade() {
+func (suite *WasmTestSuite) TestVerifyUpgradeGrandpa() {
 	var (
 		clientState            exported.ClientState
 		upgradedClient         exported.ClientState

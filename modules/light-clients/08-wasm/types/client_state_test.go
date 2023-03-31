@@ -120,7 +120,7 @@ func (suite *WasmTestSuite) TestValidate() {
 	}
 }
 
-func (suite *WasmTestSuite) TestInitialize() {
+func (suite *WasmTestSuite) TestInitializeGrandpa() {
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState
@@ -160,7 +160,7 @@ func (suite *WasmTestSuite) TestInitialize() {
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyMembership() {
+func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 	var (
 		clientState      exported.ClientState
 		err              error
@@ -407,7 +407,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyMembership2() {
+func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
 	var (
 		testingpath      *ibctesting.Path
 		delayTimePeriod  uint64
@@ -662,7 +662,7 @@ func (suite *WasmTestSuite) TestVerifyMembership2() {
 	}
 }
 
-func (suite *WasmTestSuite) TestVerifyNonMembership() {
+func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 	var (
 		clientState      exported.ClientState
 		err              error
