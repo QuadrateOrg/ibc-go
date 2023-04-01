@@ -3,6 +3,7 @@ package ibctesting
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	//errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,7 +17,7 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
-	//tmtypes "github.com/cometbft/cometbft/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	//ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
@@ -50,8 +51,17 @@ func (chain *TestChain) ConstructUpdateWasmClientHeaderWithTrustedHeight(counter
 	return &wasmHeader, nil
 }
 
-
-
+func (chain *TestChain) CreateWasmClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, nextVals, tmTrustedVals *tmtypes.ValidatorSet, signers map[string]tmtypes.PrivValidator) *wasmtypes.Header {
+	tmHeader := chain.CreateTMClientHeader(chainID, blockHeight, trustedHeight, timestamp, tmValSet, nextVals, tmTrustedVals, signers)
+	wasmData, err := chain.Codec.MarshalInterface(tmHeader)
+	require.NoError(chain.TB, err)
+	height, ok := tmHeader.GetHeight().(clienttypes.Height)
+	require.True(chain.TB, ok)
+	return &wasmtypes.Header{
+		Data: wasmData,
+		Height: height,
+	}
+}
 
 // Wasm is a testing helper used to simulate a counterparty
 // wasm machine client.

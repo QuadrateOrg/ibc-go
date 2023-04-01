@@ -17,7 +17,7 @@ import (
 	//ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *WasmTestSuite) TestStatus() {
+func (suite *WasmTestSuite) TestStatusTendermint() {
 	var (
 		path        *ibctesting.Path
 		clientState *wasmtypes.ClientState
@@ -72,6 +72,64 @@ func (suite *WasmTestSuite) TestStatus() {
 			tc.malleate()
 
 			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+			suite.Require().Equal(tc.expStatus, status)
+		})
+	}
+}
+
+func (suite *WasmTestSuite) TestStatusGrandpa() {
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expStatus exported.Status
+	}{
+		{"client is active", func() {}, exported.Active},
+		{"client is frozen", func() {
+			cs, err := base64.StdEncoding.DecodeString(suite.testData["client_state_frozen"])
+			suite.Require().NoError(err)
+
+			frozenClientState := wasmtypes.ClientState{
+				Data:   cs,
+				CodeId: suite.codeID,
+				LatestHeight: clienttypes.Height{
+					RevisionNumber: 2000,
+					RevisionHeight: 5,
+				},
+			}
+
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", &frozenClientState)
+		}, exported.Frozen},
+		{"client status without consensus state", func() {
+			cs, err := base64.StdEncoding.DecodeString(suite.testData["client_state_no_consensus"])
+			suite.Require().NoError(err)
+
+			clientState := wasmtypes.ClientState{
+				Data:   cs,
+				CodeId: suite.codeID,
+				LatestHeight: clienttypes.Height{
+					RevisionNumber: 2000,
+					RevisionHeight: 36, // This doesn't matter, but the grandpa client state is set to this
+				},
+			}
+
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, "08-wasm-0", &clientState)
+		}, exported.Expired},
+		// ics10-grandpa client state doesn't have a trusting period, so this might be removed
+		/*{"client status is expired", func() {
+			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
+		}, exported.Expired},*/
+		{"no client state", func() {
+			suite.SetupWithEmptyClient()
+		}, exported.Unknown},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWithChannel()
+			tc.malleate()
+
+			status := suite.clientState.Status(suite.ctx, suite.store, suite.chainA.App.AppCodec())
 			suite.Require().Equal(tc.expStatus, status)
 		})
 	}

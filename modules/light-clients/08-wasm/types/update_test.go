@@ -311,3 +311,65 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 		})
 	}
 }
+
+func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			// reset suite to create fresh application state
+			suite.SetupWasmTendermint()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			err := path.EndpointA.CreateClient()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			clientState := path.EndpointA.GetClientState()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	
+			misbehaviourHeader, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			suite.Require().NoError(err)
+			tmMisbehaviour := &ibctm.Misbehaviour{
+				Header1: misbehaviourHeader,
+				Header2: misbehaviourHeader,
+			}
+			wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
+			suite.Require().NoError(err)
+			clientMessage := &wasmtypes.Misbehaviour{
+				Data: wasmData,
+			}
+			clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+
+			if tc.expPass {
+				clientStateBz := clientStore.Get(host.ClientStateKey())
+				suite.Require().NotEmpty(clientStateBz)
+
+				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+				newWasmClientState := newClientState.(*wasmtypes.ClientState)
+
+				var innerClientState exported.ClientState
+				err = suite.chainA.Codec.UnmarshalInterface(newWasmClientState.Data, &innerClientState)
+				suite.Require().Equal(misbehaviourHeader.GetHeight(), innerClientState.(*ibctm.ClientState).FrozenHeight)
+
+				status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.Codec)
+				suite.Require().Equal(exported.Frozen, status)
+			}
+		})
+	}
+}
