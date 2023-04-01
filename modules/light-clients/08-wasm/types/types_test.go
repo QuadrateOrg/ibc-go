@@ -175,6 +175,7 @@ func (suite *WasmTestSuite) CommonSetupTest() {
 }
 
 func (suite *WasmTestSuite) TestPushNewWasmCodeWithErrors() {
+	suite.SetupWithEmptyClient()
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	data, err := os.ReadFile("test_data/ics10_grandpa_cw.wasm.gz")
 	suite.Require().NoError(err)
