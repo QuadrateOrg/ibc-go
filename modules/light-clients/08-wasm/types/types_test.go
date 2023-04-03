@@ -27,6 +27,22 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 )
 
+const (
+	chainID                        = "gaia"
+	chainIDRevision0               = "gaia-revision-0"
+	chainIDRevision1               = "gaia-revision-1"
+	clientID                       = "gaiamainnet"
+	trustingPeriod   time.Duration = time.Hour * 24 * 7 * 2
+	ubdPeriod        time.Duration = time.Hour * 24 * 7 * 3
+	maxClockDrift    time.Duration = time.Second * 10
+)
+
+var (
+	height          = clienttypes.NewHeight(0, 4)
+	newClientHeight = clienttypes.NewHeight(1, 1)
+	upgradePath     = []string{"upgrade", "upgradedIBCState"}
+)
+
 type WasmTestSuite struct {
 	suite.Suite
 	coordinator    *ibctesting.Coordinator
@@ -236,4 +252,8 @@ func NewTendermintClientState(endpoint *ibctesting.Endpoint, height exported.Hei
 	)
 
 	return *clientState
+}
+
+func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) map[string]tmtypes.PrivValidator {
+	return map[string]tmtypes.PrivValidator{altVal.Address.String(): altPrivVal}
 }
