@@ -296,7 +296,7 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 			},
 			expPass: false,
 		},
-		/*{
+		{
 			name: "unsuccessful update for a previous revision",
 			malleate: func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -308,11 +308,11 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 				header = suite.chainB.CreateWasmClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 
 				// increment the revision of the chain
-				err = path.EndpointB.UpgradeChain()
+				err := path.EndpointB.UpgradeChain()
 				suite.Require().NoError(err)
 			},
 			expPass: false,
-		},*/
+		},
 		{
 			name: "successful update with identical header to a previous update",
 			malleate: func() {
@@ -342,7 +342,7 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 			},
 			expPass: false,
 		},
-		/*{
+		{
 			name: "unsuccessful update: header height revision and trusted height revision mismatch",
 			malleate: func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -351,7 +351,7 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 				suite.Require().True(found)
 
 				// increment the revision of the chain
-				err = path.EndpointB.UpgradeChain()
+				err := path.EndpointB.UpgradeChain()
 				suite.Require().NoError(err)
 
 				header = suite.chainB.CreateWasmClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)

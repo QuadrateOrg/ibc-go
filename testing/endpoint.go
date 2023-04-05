@@ -230,6 +230,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		require.NoError(endpoint.Chain.TB, err)
 		wasmClientState.Data = wasmData
 		wasmClientState.LatestHeight = tmClientState.LatestHeight
+		clientState = wasmClientState
 	}
 	endpoint.Counterparty.SetClientState(clientState)
 

@@ -2,19 +2,19 @@ package types_test
 
 import (
 	//"encoding/base64"
-	"fmt"
-	"strings"
-	"time"
+	//"fmt"
+	//"strings"
+	//"time"
 
 	//tmtypes "github.com/cometbft/cometbft/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	//clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	//commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	//solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	//ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	//ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	//wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
 func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
@@ -224,7 +224,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 			},
 			true,
 		},
-		/*{
+		{
 			"valid misbehaviour at a previous revision", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
@@ -251,7 +251,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 				suite.Require().NoError(err)
 			},
 			true,
-		},*/
+		},
 		{
 			"valid misbehaviour at a future revision", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -275,7 +275,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 			},
 			true,
 		},
-		/*{
+		{
 			"valid misbehaviour with trusted heights at a previous revision", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
@@ -288,14 +288,19 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 
 				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				misbehaviour = &ibctm.Misbehaviour{
+				tmMisbehaviour := &ibctm.Misbehaviour{
 					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
 					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
 				}
+				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
+				suite.Require().NoError(err)
+				misbehaviour = &wasmtypes.Misbehaviour{
+					Data: wasmData,
+				}
 			},
 			true,
-		},*/
-		/*{
+		},
+		{
 			"consensus state's valset hash different from misbehaviour should still pass", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
