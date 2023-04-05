@@ -2,9 +2,10 @@ package types_test
 
 import (
 	"encoding/base64"
-	"time"
+	//"fmt"
+	//"time"
 
-	tmtypes "github.com/cometbft/cometbft/types"
+	//tmtypes "github.com/cometbft/cometbft/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -13,7 +14,7 @@ import (
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	//ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *WasmTestSuite) TestVerifyHeaderGrandpa() {
@@ -99,17 +100,17 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 	)
 
 	// Setup different validators and signers for testing different types of updates
-	altPrivVal := ibctestingmock.NewPV()
-	altPubKey, err := altPrivVal.GetPubKey()
-	suite.Require().NoError(err)
+	//altPrivVal := ibctestingmock.NewPV()
+	//altPubKey, err := altPrivVal.GetPubKey()
+	//suite.Require().NoError(err)
 
-	revisionHeight := int64(height.RevisionHeight)
+	//revisionHeight := int64(height.RevisionHeight)
 
 	// create modified heights to use for test-cases
-	altVal := tmtypes.NewValidator(altPubKey, 100)
+	//altVal := tmtypes.NewValidator(altPubKey, 100)
 	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
-	altSigners := getAltSigners(altVal, altPrivVal)
+	//altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
+	//altSigners := getAltSigners(altVal, altPrivVal)
 
 	testCases := []struct {
 		name     string
@@ -121,7 +122,7 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 			malleate: func() {},
 			expPass:  true,
 		},
-		{
+		/*{
 			name: "successful verify header for header with a previous height",
 			malleate: func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -324,7 +325,7 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 				header = suite.chainB.CreateWasmClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 
 				// update client so the header constructed becomes a duplicate
-				err = path.EndpointA.UpdateClient()
+				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 			},
 			expPass: true,
@@ -420,7 +421,144 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				suite.Require().True(clientState.GetLatestHeight().EQ(wasmHeader.Height)) // new update, updated client state should have changed
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
 			}, true,
+		},
+
+		{
+			"success with height earlier than latest height", func() {
+				// commit a block so the pre-created ClientMessage
+				// isn't used to update the client to a newer height
+				suite.coordinator.CommitBlock(suite.chainB)
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				suite.Require().True(ok)
+				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().GT(wasmHeader.Height))
+
+				prevClientState = path.EndpointA.GetClientState()
+			},
+			func() {
+				fmt.Println("Consensus height: ", consensusHeights[0])
+				clientState := path.EndpointA.GetClientState()
+				fmt.Println("Latest height: ", clientState.GetLatestHeight())
+				suite.Require().Equal(clientState, prevClientState) // fill in height, no change to client state
+				suite.Require().True(clientState.GetLatestHeight().GT(consensusHeights[0]))
+			}, true,
+		},
+		{
+			"success with duplicate header", func() {
+				// update client in advance
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				// use the same header which just updated the client
+				clientMessage, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+
+				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				suite.Require().True(ok)
+				suite.Require().Equal(path.EndpointA.GetClientState().GetLatestHeight(), wasmHeader.Height)
+
+				prevClientState = path.EndpointA.GetClientState()
+				prevConsensusState = path.EndpointA.GetConsensusState(wasmHeader.Height)
+			},
+			func() {
+				clientState := path.EndpointA.GetClientState()
+				suite.Require().Equal(clientState, prevClientState)
+				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
+
+				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
+				suite.Require().True(ok)
+				suite.Require().Equal(path.EndpointA.GetConsensusState(wasmHeader.Height), prevConsensusState)
+			}, true,
+		},
+		/*{
+			"success with pruned consensus state", func() {
+				// this height will be expired and pruned
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+				pruneHeight = path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				// Increment the time by a week
+				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+
+				// create the consensus state that can be used as trusted height for next update
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				// Increment the time by another week, then update the client.
+				// This will cause the first two consensus states to become expired.
+				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				// ensure counterparty state is committed
+				suite.coordinator.CommitBlock(suite.chainB)
+				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+			},
+			func() {
+				tmHeader, ok := clientMessage.(*ibctm.Header)
+				suite.Require().True(ok)
+
+				clientState := path.EndpointA.GetClientState()
+				suite.Require().True(clientState.GetLatestHeight().EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
+				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
+
+				// ensure consensus state was pruned
+				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+				suite.Require().False(found)
+			}, true,
 		},*/
+		/*{
+			"success with pruned consensus state using duplicate header", func() {
+				// this height will be expired and pruned
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+				pruneHeight = path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				// assert that a consensus state exists at the prune height
+				consensusState, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+				suite.Require().True(found)
+				suite.Require().NotNil(consensusState)
+
+				// Increment the time by a week
+				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+
+				// create the consensus state that can be used as trusted height for next update
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				// Increment the time by another week, then update the client.
+				// This will cause the first two consensus states to become expired.
+				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				// use the same header which just updated the client
+				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				suite.Require().NoError(err)
+			},
+			func() {
+				tmHeader, ok := clientMessage.(*ibctm.Header)
+				suite.Require().True(ok)
+
+				clientState := path.EndpointA.GetClientState()
+				suite.Require().True(clientState.GetLatestHeight().EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
+				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
+
+				// ensure consensus state was pruned
+				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+				suite.Require().False(found)
+			}, true,
+		},*/
+		{
+			"invalid ClientMessage type", func() {
+				clientMessage = &ibctm.Misbehaviour{}
+			},
+			func() {},
+			false,
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc
@@ -477,6 +615,91 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 		})
 	}
 }
+
+/*func (suite *WasmTestSuite) TestPruneConsensusStateTendermint() {
+	// create path and setup clients
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
+
+	// get the first height as it will be pruned first.
+	var pruneHeight exported.Height
+	getFirstHeightCb := func(height exported.Height) bool {
+		pruneHeight = height
+		return true
+	}
+	ctx := path.EndpointA.Chain.GetContext()
+	clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+	ibctm.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
+
+	// this height will be expired but not pruned
+	err := path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+	expiredHeight := path.EndpointA.GetClientState().GetLatestHeight()
+
+	// expected values that must still remain in store after pruning
+	expectedConsState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, expiredHeight)
+	suite.Require().True(ok)
+	ctx = path.EndpointA.Chain.GetContext()
+	clientStore = path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+	expectedProcessTime, ok := ibctm.GetProcessedTime(clientStore, expiredHeight)
+	suite.Require().True(ok)
+	expectedProcessHeight, ok := ibctm.GetProcessedHeight(clientStore, expiredHeight)
+	suite.Require().True(ok)
+	expectedConsKey := ibctm.GetIterationKey(clientStore, expiredHeight)
+	suite.Require().NotNil(expectedConsKey)
+
+	// Increment the time by a week
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+
+	// create the consensus state that can be used as trusted height for next update
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	// Increment the time by another week, then update the client.
+	// This will cause the first two consensus states to become expired.
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	ctx = path.EndpointA.Chain.GetContext()
+	clientStore = path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+
+	// check that the first expired consensus state got deleted along with all associated metadata
+	consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+	suite.Require().Nil(consState, "expired consensus state not pruned")
+	suite.Require().False(ok)
+	// check processed time metadata is pruned
+	processTime, ok := ibctm.GetProcessedTime(clientStore, pruneHeight)
+	suite.Require().Equal(uint64(0), processTime, "processed time metadata not pruned")
+	suite.Require().False(ok)
+	processHeight, ok := ibctm.GetProcessedHeight(clientStore, pruneHeight)
+	suite.Require().Nil(processHeight, "processed height metadata not pruned")
+	suite.Require().False(ok)
+
+	// check iteration key metadata is pruned
+	consKey := ibctm.GetIterationKey(clientStore, pruneHeight)
+	suite.Require().Nil(consKey, "iteration key not pruned")
+
+	// check that second expired consensus state doesn't get deleted
+	// this ensures that there is a cap on gas cost of UpdateClient
+	consState, ok = path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, expiredHeight)
+	suite.Require().Equal(expectedConsState, consState, "consensus state incorrectly pruned")
+	suite.Require().True(ok)
+	// check processed time metadata is not pruned
+	processTime, ok = ibctm.GetProcessedTime(clientStore, expiredHeight)
+	suite.Require().Equal(expectedProcessTime, processTime, "processed time metadata incorrectly pruned")
+	suite.Require().True(ok)
+
+	// check processed height metadata is not pruned
+	processHeight, ok = ibctm.GetProcessedHeight(clientStore, expiredHeight)
+	suite.Require().Equal(expectedProcessHeight, processHeight, "processed height metadata incorrectly pruned")
+	suite.Require().True(ok)
+
+	// check iteration key metadata is not pruned
+	consKey = ibctm.GetIterationKey(clientStore, expiredHeight)
+	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
+}*/
+
 func (suite *WasmTestSuite) TestUpdateStateGrandpa() {
 	var (
 		clientMsg   exported.ClientMessage

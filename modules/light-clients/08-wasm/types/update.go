@@ -76,12 +76,8 @@ func (c ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store s
 	if err != nil {
 		panic(err)
 	}
-	newClientState, err := getClientState(store, cdc)
-	if err != nil {
-		panic(err)
-	}
 
-	return []exported.Height{newClientState.LatestHeight}
+	return []exported.Height{clientMsg.(*Header).Height}
 }
 
 type updateStateOnMisbehaviourPayload struct {
