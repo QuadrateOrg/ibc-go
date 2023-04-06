@@ -2,10 +2,10 @@ package types_test
 
 import (
 	"encoding/base64"
-	//"fmt"
-	//"time"
+	"fmt"
+	"time"
 
-	//tmtypes "github.com/cometbft/cometbft/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -14,7 +14,7 @@ import (
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	//ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *WasmTestSuite) TestVerifyHeaderGrandpa() {
@@ -100,17 +100,17 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 	)
 
 	// Setup different validators and signers for testing different types of updates
-	//altPrivVal := ibctestingmock.NewPV()
-	//altPubKey, err := altPrivVal.GetPubKey()
-	//suite.Require().NoError(err)
+	altPrivVal := ibctestingmock.NewPV()
+	altPubKey, err := altPrivVal.GetPubKey()
+	suite.Require().NoError(err)
 
-	//revisionHeight := int64(height.RevisionHeight)
+	revisionHeight := int64(height.RevisionHeight)
 
 	// create modified heights to use for test-cases
-	//altVal := tmtypes.NewValidator(altPubKey, 100)
+	altVal := tmtypes.NewValidator(altPubKey, 100)
 	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	//altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
-	//altSigners := getAltSigners(altVal, altPrivVal)
+	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
+	altSigners := getAltSigners(altVal, altPrivVal)
 
 	testCases := []struct {
 		name     string
@@ -122,7 +122,7 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 			malleate: func() {},
 			expPass:  true,
 		},
-		/*{
+		{
 			name: "successful verify header for header with a previous height",
 			malleate: func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -357,7 +357,7 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 				header = suite.chainB.CreateWasmClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
 			expPass: false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
@@ -396,9 +396,9 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 		path               *ibctesting.Path
 		clientMessage      exported.ClientMessage
 		clientStore        sdk.KVStore
-		//consensusHeights   []exported.Height
-		//prevClientState    exported.ClientState
-		//prevConsensusState exported.ConsensusState
+		consensusHeights   []exported.Height
+		prevClientState    exported.ClientState
+		prevConsensusState exported.ConsensusState
 	)
 
 	testCases := []struct {
@@ -407,7 +407,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 		expResult func()
 		expPass   bool
 	}{
-		/*{
+		{
 			"success with height later than latest height", func() {
 				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
 				suite.Require().True(ok)
@@ -580,7 +580,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			if tc.expPass {
-				//consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
 
 				header := clientMessage.(*wasmtypes.Header)
 				var eHeader exported.ClientMessage

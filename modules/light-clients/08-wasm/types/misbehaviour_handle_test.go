@@ -2,19 +2,19 @@ package types_test
 
 import (
 	//"encoding/base64"
-	//"fmt"
+	"fmt"
 	//"strings"
-	//"time"
+	"time"
 
 	//tmtypes "github.com/cometbft/cometbft/types"
-	//clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	//commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	//solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	//ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	//ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	//wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
 func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
@@ -613,7 +613,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 		malleate func()
 		expPass  bool
 	}{
-		/*{
+		{
 			"valid update no misbehaviour",
 			func() {},
 			false,
@@ -829,7 +829,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 					Data: wasmData,
 				}
 			}, true,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {

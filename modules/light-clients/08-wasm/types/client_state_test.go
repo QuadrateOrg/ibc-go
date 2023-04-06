@@ -3,20 +3,19 @@ package types_test
 import (
 	"encoding/base64"
 	"time"
-	//"fmt"
 
-	//transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	//sdk "github.com/cosmos/cosmos-sdk/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	//"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	//channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	tmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	//ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 /*func (suite *WasmTestSuite) TestStatusTendermint() {
@@ -544,7 +543,7 @@ func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
 		malleate func()
 		expPass  bool
 	}{
-		/*{
+		{
 			"successful ClientState verification",
 			func() {
 				// default proof construction uses ClientState
@@ -653,7 +652,6 @@ func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
-				fmt.Println("Path: ", path)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
 
@@ -667,7 +665,6 @@ func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				path, err = commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
 				suite.Require().NoError(err)
-				fmt.Println("Path: ", path)
 
 				clientState := testingpath.EndpointA.GetClientState()
 				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(clientState.GetLatestHeight().GetRevisionHeight()))
@@ -734,7 +731,7 @@ func (suite *WasmTestSuite) TestVerifyMembershipTendermint() {
 				// change the inserted proof
 				proof = []byte{}
 			}, false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
