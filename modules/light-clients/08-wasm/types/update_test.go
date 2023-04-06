@@ -397,6 +397,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 		clientMessage      exported.ClientMessage
 		clientStore        sdk.KVStore
 		consensusHeights   []exported.Height
+		pruneHeight        clienttypes.Height
 		prevClientState    exported.ClientState
 		prevConsensusState exported.ConsensusState
 	)
@@ -472,7 +473,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				suite.Require().Equal(path.EndpointA.GetConsensusState(wasmHeader.Height), prevConsensusState)
 			}, true,
 		},
-		/*{
+		{
 			"success with pruned consensus state", func() {
 				// this height will be expired and pruned
 				err := path.EndpointA.UpdateClient()
@@ -494,23 +495,23 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 
 				// ensure counterparty state is committed
 				suite.coordinator.CommitBlock(suite.chainB)
-				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				clientMessage, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 			},
 			func() {
-				tmHeader, ok := clientMessage.(*ibctm.Header)
+				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
 				suite.Require().True(ok)
 
 				clientState := path.EndpointA.GetClientState()
-				suite.Require().True(clientState.GetLatestHeight().EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
+				suite.Require().True(clientState.GetLatestHeight().EQ(wasmHeader.Height)) // new update, updated client state should have changed
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
 
 				// ensure consensus state was pruned
 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
 				suite.Require().False(found)
 			}, true,
-		},*/
-		/*{
+		},
+		{
 			"success with pruned consensus state using duplicate header", func() {
 				// this height will be expired and pruned
 				err := path.EndpointA.UpdateClient()
@@ -536,22 +537,22 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				suite.Require().NoError(err)
 
 				// use the same header which just updated the client
-				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				clientMessage, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 			},
 			func() {
-				tmHeader, ok := clientMessage.(*ibctm.Header)
+				wasmHeader, ok := clientMessage.(*wasmtypes.Header)
 				suite.Require().True(ok)
 
 				clientState := path.EndpointA.GetClientState()
-				suite.Require().True(clientState.GetLatestHeight().EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
+				suite.Require().True(clientState.GetLatestHeight().EQ(wasmHeader.Height)) // new update, updated client state should have changed
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
 
 				// ensure consensus state was pruned
 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
 				suite.Require().False(found)
 			}, true,
-		},*/
+		},
 		{
 			"invalid ClientMessage type", func() {
 				clientMessage = &ibctm.Misbehaviour{}
