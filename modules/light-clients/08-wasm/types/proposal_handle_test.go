@@ -257,7 +257,7 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 			suite.Require().True(found)
 			expectedProcessedHeight, found := GetProcessedHeight(substituteClientStore, substituteWasmClientState.GetLatestHeight())
 			suite.Require().True(found)
-			//expectedIterationKey := ibctm.GetIterationKey(substituteClientStore, substituteWasmClientState.GetLatestHeight())
+			expectedIterationKey := ibctm.GetIterationKey(substituteClientStore, substituteWasmClientState.GetLatestHeight())
 
 			err = subjectWasmClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteWasmClientState)
 
@@ -280,12 +280,12 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 				suite.Require().True(found)
 				subjectProcessedHeight, found := GetProcessedHeight(subjectClientStore, updatedWasmClient.GetLatestHeight())
 				suite.Require().True(found)
-				//subjectIterationKey := ibctm.GetIterationKey(substituteClientStore, updatedClient.GetLatestHeight())
+				subjectIterationKey := ibctm.GetIterationKey(subjectClientStore, updatedWasmClient.GetLatestHeight())
 
 				suite.Require().Equal(expectedConsState, subjectConsState)
 				suite.Require().Equal(expectedProcessedTime, subjectProcessedTime)
 				suite.Require().Equal(expectedProcessedHeight, subjectProcessedHeight)
-				//suite.Require().Equal(expectedIterationKey, subjectIterationKey)
+				suite.Require().Equal(expectedIterationKey, subjectIterationKey)
 
 				suite.Require().Equal(newChainID, updatedTmClientState.ChainId)
 				suite.Require().Equal(time.Hour*24*7, updatedTmClientState.TrustingPeriod)

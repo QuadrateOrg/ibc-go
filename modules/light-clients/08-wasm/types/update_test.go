@@ -616,7 +616,8 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 	}
 }
 
-/*func (suite *WasmTestSuite) TestPruneConsensusStateTendermint() {
+func (suite *WasmTestSuite) TestPruneConsensusStateTendermint() {
+	suite.SetupWasmTendermint()
 	// create path and setup clients
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
@@ -643,7 +644,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 	clientStore = path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
 	expectedProcessTime, ok := ibctm.GetProcessedTime(clientStore, expiredHeight)
 	suite.Require().True(ok)
-	expectedProcessHeight, ok := ibctm.GetProcessedHeight(clientStore, expiredHeight)
+	expectedProcessHeight, ok := GetProcessedHeight(clientStore, expiredHeight)
 	suite.Require().True(ok)
 	expectedConsKey := ibctm.GetIterationKey(clientStore, expiredHeight)
 	suite.Require().NotNil(expectedConsKey)
@@ -672,8 +673,8 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 	processTime, ok := ibctm.GetProcessedTime(clientStore, pruneHeight)
 	suite.Require().Equal(uint64(0), processTime, "processed time metadata not pruned")
 	suite.Require().False(ok)
-	processHeight, ok := ibctm.GetProcessedHeight(clientStore, pruneHeight)
-	suite.Require().Nil(processHeight, "processed height metadata not pruned")
+	processHeight, ok := GetProcessedHeight(clientStore, pruneHeight)
+	suite.Require().Zero(processHeight, "processed height metadata not pruned")
 	suite.Require().False(ok)
 
 	// check iteration key metadata is pruned
@@ -691,14 +692,14 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 	suite.Require().True(ok)
 
 	// check processed height metadata is not pruned
-	processHeight, ok = ibctm.GetProcessedHeight(clientStore, expiredHeight)
+	processHeight, ok = GetProcessedHeight(clientStore, expiredHeight)
 	suite.Require().Equal(expectedProcessHeight, processHeight, "processed height metadata incorrectly pruned")
 	suite.Require().True(ok)
 
 	// check iteration key metadata is not pruned
 	consKey = ibctm.GetIterationKey(clientStore, expiredHeight)
 	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
-}*/
+}
 
 func (suite *WasmTestSuite) TestUpdateStateGrandpa() {
 	var (
