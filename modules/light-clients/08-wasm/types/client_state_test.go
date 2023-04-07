@@ -7,7 +7,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	//"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -18,7 +18,7 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-/*func (suite *WasmTestSuite) TestStatusTendermint() {
+func (suite *WasmTestSuite) TestStatusTendermint() {
 	var (
 		path        *ibctesting.Path
 		clientState *wasmtypes.ClientState
@@ -82,7 +82,7 @@ import (
 			suite.Require().Equal(tc.expStatus, status)
 		})
 	}
-}*/
+}
 
 func (suite *WasmTestSuite) TestStatusGrandpa() {
 	testCases := []struct {
@@ -185,7 +185,7 @@ func (suite *WasmTestSuite) TestValidate() {
 	}
 }
 
-/*func (suite *WasmTestSuite) TestInitializeGrandpa() {
+func (suite *WasmTestSuite) TestInitializeGrandpa() {
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState
@@ -277,7 +277,7 @@ func (suite *WasmTestSuite) TestInitializeTendermint() {
 			suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
 		}
 	}
-}*/
+}
 
 func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 	var (
@@ -291,9 +291,9 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 		delayBlockPeriod uint64
 	)
 	clientID := "07-tendermint-0"
-	//connectionID := "connection-0"
-	//channelID := "channel-0"
-	//portID := "transfer"
+	connectionID := "connection-0"
+	channelID := "channel-0"
+	portID := "transfer"
 	pathPrefix := "ibc/"
 
 	testCases := []struct {
@@ -301,7 +301,7 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 		setup   func()
 		expPass bool
 	}{
-		/*{
+		{
 			"successful ClientState verification",
 			func() {
 			},
@@ -466,7 +466,7 @@ func (suite *WasmTestSuite) TestVerifyMembershipGrandpa() {
 				// change the value being proved
 				value = []byte("invalid value")
 			}, false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
@@ -791,11 +791,11 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 		delayTimePeriod  uint64
 		delayBlockPeriod uint64
 	)
-	//clientID := "07-tendermint-0"
-	//portID := "transfer"
+	clientID := "07-tendermint-0"
+	portID := "transfer"
 	invalidClientID := "09-tendermint-0"
-	//invalidConnectionID := "connection-100"
-	//invalidChannelID := "channel-800"
+	invalidConnectionID := "connection-100"
+	invalidChannelID := "channel-800"
 	pathPrefix := "ibc/"
 
 	testCases := []struct {
@@ -803,7 +803,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 		setup   func()
 		expPass bool
 	}{
-		/*{
+		{
 			"successful ClientState verification of non membership",
 			func() {
 			},
@@ -925,7 +925,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipGrandpa() {
 				proof, err = base64.StdEncoding.DecodeString(suite.testData["client_state_proof"])
 				suite.Require().NoError(err)
 			}, false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
@@ -968,10 +968,10 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipTendermint() {
 		proofHeight         exported.Height
 		path                exported.Path
 		proof               []byte
-		/*invalidClientID     = "09-tendermint"
+		invalidClientID     = "09-tendermint"
 		invalidConnectionID = "connection-100"
 		invalidChannelID    = "channel-800"
-		invalidPortID       = "invalid-port"*/
+		invalidPortID       = "invalid-port"
 	)
 
 	testCases := []struct {
@@ -979,7 +979,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipTendermint() {
 		malleate func()
 		expPass  bool
 	}{
-		/*{
+		{
 			"successful ClientState verification of non membership",
 			func() {
 				// default proof construction uses ClientState
@@ -1126,7 +1126,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembershipTendermint() {
 				// change the inserted proof
 				proof = []byte{}
 			}, false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {

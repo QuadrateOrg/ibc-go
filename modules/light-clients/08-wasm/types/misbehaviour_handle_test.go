@@ -1,18 +1,19 @@
 package types_test
 
 import (
-	//"encoding/base64"
-	//"strings"
+	"encoding/base64"
+	"fmt"
+	"strings"
 	"time"
 
-	//tmtypes "github.com/cometbft/cometbft/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	//solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	//ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
@@ -27,7 +28,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
 		setup   func()
 		expPass bool
 	}{
-		/*{
+		{
 			"successful misbehaviour verification",
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
@@ -72,7 +73,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
 				clientMsg = &solomachine.Misbehaviour{}
 			},
 			false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
@@ -95,16 +96,16 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
 
 func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 	// Setup different validators and signers for testing different types of updates
-	//altPrivVal := ibctestingmock.NewPV()
-	//altPubKey, err := altPrivVal.GetPubKey()
-	//suite.Require().NoError(err)
+	altPrivVal := ibctestingmock.NewPV()
+	altPubKey, err := altPrivVal.GetPubKey()
+	suite.Require().NoError(err)
 
 	// create modified heights to use for test-cases
-	//altVal := tmtypes.NewValidator(altPubKey, 100)
+	altVal := tmtypes.NewValidator(altPubKey, 100)
 
 	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	//altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
-	//altSigners := getAltSigners(altVal, altPrivVal)
+	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
+	altSigners := getAltSigners(altVal, altPrivVal)
 
 	var (
 		path         *ibctesting.Path
@@ -116,7 +117,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 		malleate func()
 		expPass  bool
 	}{
-		/*{
+		{
 			"valid fork misbehaviour", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
@@ -486,7 +487,7 @@ func (suite *WasmTestSuite) TestVerifyMisbehaviourTendermint() {
 					Data: wasmData,
 				}
 			}, false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
@@ -526,7 +527,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourGrandpa() {
 		setup   func()
 		expPass bool
 	}{
-		/*{
+		{
 			"valid update no misbehaviour",
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
@@ -581,7 +582,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourGrandpa() {
 				clientMsg = &solomachine.Misbehaviour{}
 			},
 			false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
@@ -774,7 +775,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 		{
 			"valid fork misbehaviour returns true",
 			func() {
-				//header1, err := path.EndpointB.Chain.ConstructUpdateTMClientHeader(path.EndpointB.Counterparty.Chain, path.EndpointB.ClientID)
 				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 
@@ -783,7 +783,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				//header2, err := path.EndpointB.Chain.ConstructUpdateTMClientHeader(path.EndpointB.Counterparty.Chain, path.EndpointB.ClientID)
 				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 
@@ -794,7 +793,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				tmMisbehaviour := &ibctm.Misbehaviour{
 					Header1:  header1,
 					Header2:  header2,
-					//ClientId: path.EndpointA.ClientID,
 				}
 
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
