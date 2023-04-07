@@ -28,11 +28,11 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 		setup   func()
 		expPass bool
 	}{
-		/*{
+		{
 			"success",
 			func() {},
 			true,
-		},*/
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc

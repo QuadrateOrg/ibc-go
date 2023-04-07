@@ -7,7 +7,7 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	//solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -34,7 +34,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeGrandpa() {
 		setup   func()
 		expPass bool
 	}{
-		/*{
+		{
 			"successful upgrade",
 			func() {},
 			true,
@@ -66,7 +66,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeGrandpa() {
 				proofUpgradedConsState = []byte("invalid consensus state proof")
 			},
 			false,
-		},*/
+		},
 	}
 
 	for _, tc := range testCases {
