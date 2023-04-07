@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"encoding/base64"
-	"fmt"
 	"time"
 
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -439,9 +438,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				prevClientState = path.EndpointA.GetClientState()
 			},
 			func() {
-				fmt.Println("Consensus height: ", consensusHeights[0])
 				clientState := path.EndpointA.GetClientState()
-				fmt.Println("Latest height: ", clientState.GetLatestHeight())
 				suite.Require().Equal(clientState, prevClientState) // fill in height, no change to client state
 				suite.Require().True(clientState.GetLatestHeight().GT(consensusHeights[0]))
 			}, true,

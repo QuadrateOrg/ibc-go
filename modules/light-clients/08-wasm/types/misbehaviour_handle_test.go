@@ -2,7 +2,6 @@ package types_test
 
 import (
 	//"encoding/base64"
-	"fmt"
 	//"strings"
 	"time"
 
@@ -737,8 +736,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 
 				tmHeader, ok := wasmData.(*ibctm.Header)
 				suite.Require().NoError(err)
-				fmt.Println("Height: ", tmHeader.GetHeight())
-				fmt.Println("Trusted Height: ", tmHeader.TrustedHeight)
 
 				// offset header timestamp before previous consensus state timestamp
 				tmHeader.Header.Time = tmHeader.GetTime().Add(-time.Hour)
@@ -760,8 +757,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 
 				tmHeader, ok := wasmData.(*ibctm.Header)
 				suite.Require().NoError(err)
-				fmt.Println("Height: ", tmHeader.Header.GetHeight())
-				fmt.Println("Trusted Height: ", tmHeader.TrustedHeight)
 
 				// offset header timestamp before previous consensus state timestamp
 				tmHeader.Header.Time = tmHeader.GetTime().Add(time.Hour)
