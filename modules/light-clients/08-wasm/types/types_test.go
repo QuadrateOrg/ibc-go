@@ -74,7 +74,7 @@ func (suite *WasmTestSuite) SetupWasmTendermint() {
 	err := os.MkdirAll("tmp", 0o755)
 	suite.Require().NoError(err)
 	suite.wasmKeeper = suite.chainA.App.GetWasmKeeper()
-	wasmContract, err := os.ReadFile("test_data/ics07_tendermint_cw.wasm")
+	wasmContract, err := os.ReadFile("test_data/ics07_tendermint_cw.wasm.gz")
 	suite.Require().NoError(err)
 
 	msg := wasmtypes.NewMsgPushNewWasmCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
