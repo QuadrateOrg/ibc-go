@@ -29,7 +29,7 @@ type Coordinator struct {
 }
 
 // NewCoordinator initializes Coordinator with N TestChain's
-func NewCoordinator(t *testing.T, n int, wasm bool) *Coordinator {
+func NewCoordinator(t *testing.T, n int) *Coordinator {
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
 		T:           t,
@@ -38,7 +38,7 @@ func NewCoordinator(t *testing.T, n int, wasm bool) *Coordinator {
 
 	for i := 1; i <= n; i++ {
 		chainID := GetChainID(i)
-		chains[chainID] = NewTestChain(t, coord, chainID, wasm)
+		chains[chainID] = NewTestChain(t, coord, chainID)
 	}
 	coord.Chains = chains
 

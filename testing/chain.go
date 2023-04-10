@@ -150,6 +150,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		SenderPrivKey:  senderAccs[0].SenderPrivKey,
 		SenderAccount:  senderAccs[0].SenderAccount,
 		SenderAccounts: senderAccs,
+		WasmClient:     false,
 	}
 
 	coord.CommitBlock(chain)
@@ -159,7 +160,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 
 // NewTestChain initializes a new test chain with a default of 4 validators
 // Use this function if the tests do not need custom control over the validator set
-func NewTestChain(t *testing.T, coord *Coordinator, chainID string, wasm bool) *TestChain {
+func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// generate validators private/public key
 	var (
 		validatorsPerChain = 4
@@ -180,7 +181,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string, wasm bool) *
 	// or, if equal, by address lexical order
 	valSet := tmtypes.NewValidatorSet(validators)
 
-	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress).SetWasm(wasm)
+	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress)
 }
 
 func (chain *TestChain) SetWasm(wasm bool) *TestChain {

@@ -11,7 +11,7 @@ import (
 )
 
 func TestChangeValSet(t *testing.T) {
-	coord := ibctesting.NewCoordinator(t, 2, false)
+	coord := ibctesting.NewCoordinator(t, 2)
 	chainA := coord.GetChain(ibctesting.GetChainID(1))
 	chainB := coord.GetChain(ibctesting.GetChainID(2))
 

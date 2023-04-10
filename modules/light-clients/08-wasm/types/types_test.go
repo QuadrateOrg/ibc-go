@@ -60,9 +60,11 @@ type WasmTestSuite struct {
 
 func (suite *WasmTestSuite) SetupWasmTendermint() {
 	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2, true)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainA.SetWasm(true)
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainB.SetWasm(true)
 
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
@@ -163,7 +165,7 @@ func (suite *WasmTestSuite) SetupWithEmptyClient() {
 }
 
 func (suite *WasmTestSuite) CommonSetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1, false)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
