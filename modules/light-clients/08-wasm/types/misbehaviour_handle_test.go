@@ -8,13 +8,13 @@ import (
 
 	tmtypes "github.com/cometbft/cometbft/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 )
 
 func (suite *WasmTestSuite) TestVerifyMisbehaviourGrandpa() {
@@ -640,7 +640,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				wasmDataCS, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
 				wasmConsensusState := &wasmtypes.ConsensusState{
-					Data: wasmDataCS,
+					Data:      wasmDataCS,
 					Timestamp: tmConsensusState.GetTimestamp(),
 				}
 
@@ -716,7 +716,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				wasmDataCS, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
 				wasmConsensusState := &wasmtypes.ConsensusState{
-					Data: wasmDataCS,
+					Data:      wasmDataCS,
 					Timestamp: tmConsensusState.GetTimestamp(),
 				}
 
@@ -766,7 +766,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				suite.Require().NoError(err)
 				// commit block and update client, adding a new consensus state
 				suite.coordinator.CommitBlock(suite.chainB)
-				
+
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 			},
@@ -791,8 +791,8 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				header1.Commit.Height = header2.Commit.Height
 
 				tmMisbehaviour := &ibctm.Misbehaviour{
-					Header1:  header1,
-					Header2:  header2,
+					Header1: header1,
+					Header2: header2,
 				}
 
 				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)

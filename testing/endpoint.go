@@ -121,13 +121,13 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 			endpoint.Chain.Coordinator.CodeID,
 			height,
 		)
-		
+
 		wasmConsData, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
 		if err != nil {
 			return err
 		}
 		consensusState = &wasmtypes.ConsensusState{
-			Data: wasmConsData,
+			Data:      wasmConsData,
 			Timestamp: tmConsensusState.GetTimestamp(),
 		}
 	default:
@@ -224,7 +224,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	// update counterparty client manually
 	tmClientState.ChainId = newChainID
 	tmClientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, tmClientState.LatestHeight.GetRevisionHeight()+1)
-	
+
 	if endpoint.ClientConfig.GetClientType() == exported.Wasm {
 		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmClientState)
 		require.NoError(endpoint.Chain.TB, err)
@@ -245,7 +245,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
 		require.NoError(endpoint.Chain.TB, err)
 		consensusState = &wasmtypes.ConsensusState{
-			Data: wasmData,
+			Data:      wasmData,
 			Timestamp: tmConsensusState.GetTimestamp(),
 		}
 	}

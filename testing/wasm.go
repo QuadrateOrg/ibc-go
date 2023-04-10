@@ -12,15 +12,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/stretchr/testify/require"
 
+	tmtypes "github.com/cometbft/cometbft/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
-	tmtypes "github.com/cometbft/cometbft/types"
 	//ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
-
 
 func (chain *TestChain) ConstructUpdateWasmClientHeader(counterparty *TestChain, clientID string) (*wasmtypes.Header, error) {
 	return chain.ConstructUpdateWasmClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
@@ -44,7 +43,7 @@ func (chain *TestChain) ConstructUpdateWasmClientHeaderWithTrustedHeight(counter
 		return nil, fmt.Errorf("Error casting exported height to clienttypes height")
 	}
 	wasmHeader := wasmtypes.Header{
-		Data: wasmData,
+		Data:   wasmData,
 		Height: height,
 	}
 
@@ -58,7 +57,7 @@ func (chain *TestChain) CreateWasmClientHeader(chainID string, blockHeight int64
 	height, ok := tmHeader.GetHeight().(clienttypes.Height)
 	require.True(chain.TB, ok)
 	return &wasmtypes.Header{
-		Data: wasmData,
+		Data:   wasmData,
 		Height: height,
 	}
 }

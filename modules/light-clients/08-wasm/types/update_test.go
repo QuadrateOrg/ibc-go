@@ -5,13 +5,13 @@ import (
 	"time"
 
 	tmtypes "github.com/cometbft/cometbft/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -362,31 +362,31 @@ func (suite *WasmTestSuite) TestVerifyHeaderTendermint() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-		suite.SetupWasmTendermint()
-		path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.SetupWasmTendermint()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-		err := path.EndpointA.CreateClient()
-		suite.Require().NoError(err)
+			err := path.EndpointA.CreateClient()
+			suite.Require().NoError(err)
 
-		// ensure counterparty state is committed
-		suite.coordinator.CommitBlock(suite.chainB)
-		header, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-		suite.Require().NoError(err)
+			// ensure counterparty state is committed
+			suite.coordinator.CommitBlock(suite.chainB)
+			header, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
-		tc.malleate()
+			tc.malleate()
 
-		clientState := path.EndpointA.GetClientState()
+			clientState := path.EndpointA.GetClientState()
 
-		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-		err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, header)
+			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, header)
 
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err)
-		}
-	})
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
@@ -593,7 +593,7 @@ func (suite *WasmTestSuite) TestUpdateStateTendermint() {
 				wasmData, err := suite.chainA.Codec.MarshalInterface(expTmConsensusState)
 				suite.Require().NoError(err)
 				expWasmConsensusState := &wasmtypes.ConsensusState{
-					Data: wasmData,
+					Data:      wasmData,
 					Timestamp: expTmConsensusState.GetTimestamp(),
 				}
 
@@ -865,7 +865,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
 
 			clientState := path.EndpointA.GetClientState()
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-	
+
 			misbehaviourHeader, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 			suite.Require().NoError(err)
 			tmMisbehaviour := &ibctm.Misbehaviour{

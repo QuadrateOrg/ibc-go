@@ -8,8 +8,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -113,7 +113,6 @@ func (suite *WasmTestSuite) TestCheckSubstituteUpdateStateBasicTendermint() {
 				suite.coordinator.SetupClients(substitutePath)
 				substituteWasmClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*wasmtypes.ClientState)
 
-
 				var clientStateData exported.ClientState
 				err := suite.chainA.Codec.UnmarshalInterface(substituteWasmClientState.Data, &clientStateData)
 				suite.Require().NoError(err)
@@ -212,15 +211,15 @@ func (suite *WasmTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(substitutePath)
 			substituteWasmClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*wasmtypes.ClientState)
-			
+
 			var substituteWasmClientStateData exported.ClientState
 			err = suite.chainA.Codec.UnmarshalInterface(substituteWasmClientState.Data, &substituteWasmClientStateData)
 			suite.Require().NoError(err)
 			substituteTmClientState := substituteWasmClientStateData.(*ibctm.ClientState)
-			
+
 			// update trusting period of substitute client state
 			substituteTmClientState.TrustingPeriod = time.Hour * 24 * 7
-			
+
 			substituteTmClientStateBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), substituteTmClientState)
 			suite.Require().NoError(err)
 			substituteWasmClientState.Data = substituteTmClientStateBz
@@ -302,6 +301,6 @@ func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (uint64
 	if len(bz) == 0 {
 		return 0, false
 	}
-	
+
 	return sdk.BigEndianToUint64(bz), true
 }

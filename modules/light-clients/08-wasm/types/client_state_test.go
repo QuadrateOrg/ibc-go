@@ -4,8 +4,8 @@ import (
 	"encoding/base64"
 	"time"
 
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -75,7 +75,7 @@ func (suite *WasmTestSuite) TestStatusTendermint() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			clientState = path.EndpointA.GetClientState().(*wasmtypes.ClientState)
-			
+
 			tc.malleate()
 
 			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
@@ -232,12 +232,12 @@ func (suite *WasmTestSuite) TestInitializeTendermint() {
 		expPass        bool
 	}{
 		{
-			name:           "valid consensus",
+			name: "valid consensus",
 			consensusState: &wasmtypes.ConsensusState{
-				Data: []byte{0},
+				Data:      []byte{0},
 				Timestamp: 1,
 			},
-			expPass:        true,
+			expPass: true,
 		},
 		{
 			name:           "invalid consensus: consensus state is solomachine consensus",

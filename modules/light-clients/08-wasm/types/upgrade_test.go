@@ -7,9 +7,9 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -256,7 +256,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClient = tmUpgradedClient.ZeroCustomFields()
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
-				
+
 				upgradedClient = wasmtypes.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 
 				suite.coordinator.CommitBlock(suite.chainB)
@@ -308,18 +308,18 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				// zero custom fields and store in upgrade store
 				suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedClientBz)            //nolint:errcheck // ignore error for test
 				suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsStateBz) //nolint:errcheck // ignore error for test
-				
+
 				var tmUpgradedConsState exported.ConsensusState
 				tmUpgradedConsState = &ibctm.ConsensusState{
-					Timestamp: time.Now(),
-					Root: commitmenttypes.NewMerkleRoot([]byte("malicious root hash")),
+					Timestamp:          time.Now(),
+					Root:               commitmenttypes.NewMerkleRoot([]byte("malicious root hash")),
 					NextValidatorsHash: []byte("01234567890123456789012345678901"),
 				}
 				tmUpgradedConsStateBz, err := clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), tmUpgradedConsState)
 				suite.Require().NoError(err)
-		
+
 				upgradedConsState = &wasmtypes.ConsensusState{
-					Data: tmUpgradedConsStateBz,
+					Data:      tmUpgradedConsStateBz,
 					Timestamp: tmUpgradedConsState.GetTimestamp(),
 				}
 
@@ -596,15 +596,15 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 
 		var tmUpgradedConsState exported.ConsensusState
 		tmUpgradedConsState = &ibctm.ConsensusState{
-			Timestamp: time.Now(),
-			Root: commitmenttypes.NewMerkleRoot([]byte("root hash")),
+			Timestamp:          time.Now(),
+			Root:               commitmenttypes.NewMerkleRoot([]byte("root hash")),
 			NextValidatorsHash: []byte("01234567890123456789012345678901"),
 		}
 		tmUpgradedConsStateBz, err := clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), tmUpgradedConsState)
 		suite.Require().NoError(err)
 
 		upgradedConsState = &wasmtypes.ConsensusState{
-			Data: tmUpgradedConsStateBz,
+			Data:      tmUpgradedConsStateBz,
 			Timestamp: tmUpgradedConsState.GetTimestamp(),
 		}
 		upgradedConsStateBz, err = clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState)
