@@ -210,7 +210,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 			name: "unsuccessful upgrade: committed client does not have zeroed custom fields",
 			setup: func() {
 				// non-zeroed upgrade client
-				var tmUpgradedClient exported.ClientState
+				var tmUpgradedClient exported.ClientState //nolint:gosimple // ignore error for test
 				tmUpgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, newClientHeight, commitmenttypes.GetSDKSpecs(), upgradePath)
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
@@ -309,7 +309,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedClientBz)            //nolint:errcheck // ignore error for test
 				suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsStateBz) //nolint:errcheck // ignore error for test
 
-				var tmUpgradedConsState exported.ConsensusState
+				var tmUpgradedConsState exported.ConsensusState //nolint:gosimple // ignore error for test
 				tmUpgradedConsState = &ibctm.ConsensusState{
 					Timestamp:          time.Now(),
 					Root:               commitmenttypes.NewMerkleRoot([]byte("malicious root hash")),
@@ -425,10 +425,12 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 				wasmClient, _ := cs.(*wasmtypes.ClientState)
 				var wasmClientData exported.ClientState
 				err = suite.chainA.Codec.UnmarshalInterface(wasmClient.Data, &wasmClientData)
+				suite.Require().NoError(err)
 				tmClient := wasmClientData.(*ibctm.ClientState)
 				tmClient.UpgradePath = []string{""}
 
 				tmClientBz, err := suite.chainA.Codec.MarshalInterface(tmClient)
+				suite.Require().NoError(err)
 				wasmClient.Data = tmClientBz
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, wasmClient)
@@ -594,7 +596,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeTendermint() {
 		upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 		suite.Require().NoError(err)
 
-		var tmUpgradedConsState exported.ConsensusState
+		var tmUpgradedConsState exported.ConsensusState //nolint:gosimple // ignore error for test
 		tmUpgradedConsState = &ibctm.ConsensusState{
 			Timestamp:          time.Now(),
 			Root:               commitmenttypes.NewMerkleRoot([]byte("root hash")),

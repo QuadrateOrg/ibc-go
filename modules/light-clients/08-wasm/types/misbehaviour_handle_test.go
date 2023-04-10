@@ -629,7 +629,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				suite.Require().NoError(err)
 
 				tmHeader, ok := wasmData.(*ibctm.Header)
-				suite.Require().NoError(err)
+				suite.Require().True(ok)
 
 				tmConsensusState := &ibctm.ConsensusState{
 					Timestamp:          tmHeader.GetTime(),
@@ -705,7 +705,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				suite.Require().NoError(err)
 
 				tmHeader, ok := wasmData.(*ibctm.Header)
-				suite.Require().NoError(err)
+				suite.Require().True(ok)
 
 				tmConsensusState := &ibctm.ConsensusState{
 					Timestamp:          tmHeader.GetTime(),
@@ -736,7 +736,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				suite.Require().NoError(err)
 
 				tmHeader, ok := wasmData.(*ibctm.Header)
-				suite.Require().NoError(err)
+				suite.Require().True(ok)
 
 				// offset header timestamp before previous consensus state timestamp
 				tmHeader.Header.Time = tmHeader.GetTime().Add(-time.Hour)
@@ -757,7 +757,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				suite.Require().NoError(err)
 
 				tmHeader, ok := wasmData.(*ibctm.Header)
-				suite.Require().NoError(err)
+				suite.Require().True(ok)
 
 				// offset header timestamp before previous consensus state timestamp
 				tmHeader.Header.Time = tmHeader.GetTime().Add(time.Hour)
@@ -800,7 +800,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviourTendermint() {
 				clientMessage = &wasmtypes.Misbehaviour{
 					Data: wasmData,
 				}
-
 			},
 			true,
 		},

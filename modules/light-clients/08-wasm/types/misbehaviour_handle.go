@@ -39,7 +39,6 @@ func (c ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, 
 	result, err := call[contractResult](payload, &c, ctx, clientStore)
 	if err != nil {
 		panic(err)
-		//return false
 	}
 
 	return result.FoundMisbehaviour

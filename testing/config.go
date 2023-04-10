@@ -7,7 +7,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	wasmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
@@ -38,24 +37,6 @@ func (tmcfg *TendermintConfig) GetClientType() string {
 		return exported.Wasm
 	}
 	return exported.Tendermint
-}
-
-type WasmConfig struct {
-	InitConsensusState wasmtypes.ConsensusState
-	InitClientState    wasmtypes.ClientState
-	UpdateHeader       wasmtypes.Header
-}
-
-func (tmcfg *WasmConfig) GetClientType() string {
-	return exported.Wasm
-}
-
-func NewWasmConfig(consensusState wasmtypes.ConsensusState, clientState wasmtypes.ClientState, updateHeader wasmtypes.Header) *WasmConfig {
-	return &WasmConfig{
-		InitConsensusState: consensusState,
-		InitClientState:    clientState,
-		UpdateHeader:       updateHeader,
-	}
 }
 
 type ConnectionConfig struct {

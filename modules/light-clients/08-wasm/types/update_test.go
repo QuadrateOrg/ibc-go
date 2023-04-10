@@ -888,6 +888,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
 
 				var innerClientState exported.ClientState
 				err = suite.chainA.Codec.UnmarshalInterface(newWasmClientState.Data, &innerClientState)
+				suite.Require().NoError(err)
 				suite.Require().Equal(misbehaviourHeader.GetHeight(), innerClientState.(*ibctm.ClientState).FrozenHeight)
 
 				status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.Codec)

@@ -52,6 +52,7 @@ func (suite *WasmTestSuite) TestStatusTendermint() {
 			tmClientState := eClientState.(*tmtypes.ClientState)
 			tmClientState.LatestHeight = latestHeight
 			wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
+			suite.Require().NoError(err)
 
 			clientState.Data = wasmData
 			clientState.LatestHeight = latestHeight

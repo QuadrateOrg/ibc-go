@@ -384,8 +384,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 		panic(err)
 	}
 
-	newValSet := tmtypes.NewValidatorSet(tmValidators)
-	return newValSet, true
+	return tmtypes.NewValidatorSet(tmValidators), true
 }
 
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
