@@ -129,8 +129,8 @@ func getClientState(store sdk.KVStore, cdc codec.BinaryCodec) (*ClientState, err
 
 // getConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist or it cannot be unmarshalled.
-func getConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
-	bz := store.Get(host.ConsensusStateKey(height))
+func GetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
+	bz := clientStore.Get(host.ConsensusStateKey(height))
 	if len(bz) == 0 {
 		return nil, sdkerrors.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state does not exist for height %s", height)
 	}

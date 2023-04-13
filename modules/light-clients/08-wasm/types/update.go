@@ -57,14 +57,11 @@ type (
 	}
 )
 
-// Client state and new consensus states are updated in the store by the contract.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	var clientMsgConcrete clientMessage
-	switch clientMsg := clientMsg.(type) {
-	case *Header:
-		clientMsgConcrete.Header = clientMsg
-	case *Misbehaviour:
-		clientMsgConcrete.Misbehaviour = clientMsg
+// Client state and new consensus states are updated in the store by the contract
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
+	header, ok := clientMsg.(*Header)
+	if !ok {
+		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
 	
 	payload := updateStatePayload{
@@ -75,7 +72,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, store 
 		},
 	}
 
-	_, err := call[contractResult](ctx, store, &cs, payload)
+	_, err := call[contractResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}
