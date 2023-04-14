@@ -79,13 +79,13 @@ func (suite *WasmTestSuite) SetupWasmTendermint() {
 	wasmContract, err := os.ReadFile("test_data/ics07_tendermint_cw.wasm.gz")
 	suite.Require().NoError(err)
 
-	msg := wasmtypes.NewMsgPushNewWasmCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := suite.wasmKeeper.PushNewWasmCode(suite.chainA.GetContext(), msg)
+	msg := wasmtypes.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
+	response, err := suite.wasmKeeper.StoreCode(suite.chainA.GetContext(), msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
 	suite.codeID = response.CodeId
 
-	response, err = suite.chainB.App.GetWasmKeeper().PushNewWasmCode(suite.chainB.GetContext(), msg)
+	response, err = suite.chainB.App.GetWasmKeeper().StoreCode(suite.chainB.GetContext(), msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.CodeId)
 	suite.codeID = response.CodeId

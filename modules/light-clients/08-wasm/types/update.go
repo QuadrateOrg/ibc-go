@@ -63,10 +63,10 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	if !ok {
 		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
-	
+
 	payload := updateStatePayload{
 		UpdateState: updateStateInnerPayload{
-			ClientMessage: clientMessageConcretePayload{
+			ClientMessage: clientMessage{
 				Header: header,
 			},
 		},
