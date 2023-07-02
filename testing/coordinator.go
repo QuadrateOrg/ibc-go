@@ -173,7 +173,7 @@ func (coord *Coordinator) GetChain(chainID string) *TestChain {
 
 // GetChainID returns the chainID used for the provided index.
 func GetChainID(index int) string {
-	return ChainIDPrefix + strconv.Itoa(index)
+	return ChainIDPrefix + "_" + strconv.Itoa(index) + "-1"
 }
 
 // CommitBlock commits a block on the provided indexes and then increments the global time.
